@@ -63,11 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
 				return qpOptions.onDidSelectItem(server!); // read files within server directory
 			})
 			.then(serverFiles => {
-				console.log(serverFiles)
 				return buildPathObject(serverFiles); // build reference object with relevant data
 			})
 			.then(pathObject => {
-				console.log(pathObject)
 				return buildSuperTest(pathObject); // build test file
 			})
 			.then(supertest => {
@@ -95,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.window.showQuickPick(fileList, qpOptions)
 			.then(server => {
-				return qpOptions.onDidSelectItem(server!); // read files within server directory
+				return qpOptions.onDidSelectItem(server as string); // read files within server directory
 			})
 			.then(serverFiles => {
 				return buildPathObject(serverFiles); // build reference object with relevant data

@@ -17,14 +17,15 @@
   // Match all patterns of a status being set in the function definition
   const dotStatusRE = /status\((?<status>\d{3})/gim; // returns
 
-  const statusMatch = [...functionToParse.matchAll(dotStatusRE)].reduce((obj:Partial<REMatch>, matchArr, ind:number) => {
+  const statusMatches = [...functionToParse.matchAll(dotStatusRE)].reduce((obj:Partial<REMatch>, matchArr, ind:number) => {
     obj[ind] = matchArr.groups;
     return obj;
   }, {});
   
   // When a status is matched, store the status
-  if (Object.keys(statusMatch).length) {
-    responseInfo.status = statusMatch[0]!.status;
+  if (Object.keys(statusMatches).length) {
+    const statusMatch = statusMatches as REMatch;
+    responseInfo.status = statusMatch[0].status;
   }
 
   // Match all patterns of JSON being sent via the ResponseObject.json() method
@@ -43,21 +44,22 @@
   // Matches all patterns of the send() method being invoked from the Response Object
   const dotSendRE = /\.send\(\s?(?<sendContent>((true|false)|['"`{\[]))/gim;
 
-  const sendMatch = [...functionToParse.matchAll(dotSendRE)].reduce((obj:Partial<REMatch>, matchArr, ind:number) => {
+  const sendMatches = [...functionToParse.matchAll(dotSendRE)].reduce((obj:Partial<REMatch>, matchArr, ind:number) => {
     obj[ind] = matchArr.groups;
     return obj;
   }, {});
 
 
   // When a .send method is matched
-  if (Object.keys(sendMatch).length) {
+  if (Object.keys(sendMatches).length) {
     // Case: The content sent will be JSON
-    if (sendMatch[0]!.sendContent === '{' || sendMatch[0]!.sendContent === '['
-     || sendMatch[0]!.sendContent === 'true' || sendMatch[0]!.sendContent === 'false') {
+    const sendMatch = sendMatches as REMatch;
+    if (sendMatch[0].sendContent === '{' || sendMatch[0].sendContent === '['
+     || sendMatch[0].sendContent === 'true' || sendMatch[0].sendContent === 'false') {
       responseInfo['content-type'] = 'json';
 
     // Case: The content sent was a string
-    } else if (sendMatch[0]!.sendContent[0] === '\'' || sendMatch[0]!.sendContent[0] === '"' || sendMatch[0]!.sendContent[0] === '`') {
+    } else if (sendMatch[0].sendContent[0] === '\'' || sendMatch[0].sendContent[0] === '"' || sendMatch[0].sendContent[0] === '`') {
       responseInfo['content-type'] = 'html';
     }
   }
@@ -65,23 +67,24 @@
   // Matches all patterns of the sendFile() method being invoked from the Response Object
   const dotSendFileRE = /\.sendFile\(\s?(?<sendContent>.*?)\s?\)/gim;
 
-  const sendFileMatch = [...functionToParse.matchAll(dotSendFileRE)].reduce((obj:Partial<REMatch>, matchArr, ind:number) => {
+  const sendFileMatches = [...functionToParse.matchAll(dotSendFileRE)].reduce((obj:Partial<REMatch>, matchArr, ind:number) => {
     obj[ind] = matchArr.groups;
     return obj;
   }, {});
 
   // When a .sendFile method is matched
-  if (Object.keys(sendFileMatch).length) {
+  if (Object.keys(sendFileMatches).length) {
     // Case: The content sent is a file
-    if (/(\.html|\.js)/.test(sendFileMatch[0]!.sendContent)) {
+    const sendFileMatch = sendFileMatches as REMatch;
+    if (/(\.html|\.js)/.test(sendFileMatch[0].sendContent)) {
       // Dictionary for the file extensions and the correct content-type
-      const fileExtensionObject = {
+      const fileExtensionObject:Dictionary = {
         '.js': 'javascript',
         '.html': 'html',
       };
 
-      const fileExtension = /(\.html|\.js)/.exec(sendFileMatch[0]!.sendContent);
-      responseInfo['content-type'] = fileExtensionObject[fileExtension[0]];
+      const fileExtension = /(\.html|\.js)/.exec(sendFileMatch[0].sendContent);
+      responseInfo['content-type'] = fileExtensionObject[fileExtension![0]];
     }
   }
 

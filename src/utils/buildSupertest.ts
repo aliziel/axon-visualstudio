@@ -11,8 +11,8 @@ import SuperTestCodeBuilder from './utilityFunctions/SuperTestCodeBuilder';
  */
  export default function (pathObject:PathObject){
   // Find the Server File within the 'pathObject' as the starting File
-  const serverFile = pathObject[pathObject.__serverFilePath__];
-
+  const serverPath = <string> pathObject.__serverFilePath__;
+  const serverFile = <FileObject>pathObject[serverPath];
   // Create a new instance of SuperTestCodeBuilder which will be used to build the superTest code string
   const codeFormatting = {
     autoNewLine: true,
@@ -44,7 +44,6 @@ const request = require(\'supertest\');
   function createTestsForEndpoints(currentFile:FileObject, parentRoute = '/', superTestCode:SuperTestCodeBuilder){
     // Set the Beggining text indentation for each recursive call to be indented by 2 spaces
     superTestCode.currentTextIndentation = 2;
-
     // Traverse through Endpoints object and begin to write tests for each endpoint
     for (const route in currentFile.endpoints) {
       let currentRoute;
@@ -63,11 +62,12 @@ const request = require(\'supertest\');
       superTestCode.add(`describe(\'${currentRoute}\', () => {`);
 
       // Traverse through the current endpoint array
-      for (const endpointArray of currentFile.endpoints![route]) {
+      for (const endpointArray of currentFile.endpoints[route] as AllEndpoints) {
         // Store relevant endpoint information from endpoint array into variables
-        const reqMethod = endpointArray[0];
-        const statusCode = endpointArray[endpointArray.length - 1].status;
-        const contentTypeOfEndpoint:string = endpointArray[endpointArray.length - 1]['content-type'];
+        const reqMethod = <string> endpointArray[0];
+        const testParams = <TestParams> endpointArray[endpointArray.length - 1];
+        const statusCode = testParams.status;
+        const contentTypeOfEndpoint = <string>testParams['content-type'];
         const codeAndType = `${statusCode} and ${contentTypeOfEndpoint}`;
 
         // Write the opening Describe Block for the current endpoint
@@ -77,7 +77,7 @@ const request = require(\'supertest\');
         superTestCode.add(`it(\'Responds with status code ${codeAndType} content type \', () => {`, 'right');
 
         // Write the SuperTest test nested inside the It Block
-        const contentTypes = {
+        const contentTypes:Dictionary = {
           html: ' /text\\/html/',
           json: ' /json/',
         };
@@ -87,6 +87,7 @@ const request = require(\'supertest\');
           route: currentRoute,
           contentType: contentTypes[contentTypeOfEndpoint],
         };
+
         superTestCode.generateSuperTest(reqMethod, endpointData);
 
         // Close the It Block and Describe block for the specific supertest
@@ -104,15 +105,15 @@ const request = require(\'supertest\');
     // Traverse through the Routers object and write tests for each imported router
     for (const route in currentFile.routers) {
       // Find the imported File in the pathObject
-      const currentRouteArray = currentFile.routers[route];
-      const routerName = currentRouteArray![0][1];
-      const importedFilePath = `${currentFile.imports![routerName]}.js`;
-      const importedFile = pathObject[importedFilePath];
-
+      const currentRouteArray = <AllRouters>currentFile.routers[route];
+      const routerName = currentRouteArray[0][1];
+      const importedFilePath = `${currentFile.imports[routerName]}.js`;
+      const importedFile = <FileObject>pathObject[importedFilePath];
       // Skip the file if it is not a router file
       if (importedFile === undefined) {
         continue;
       }
+
       // Call function recursively to build superTest code for the imported router file
       createTestsForEndpoints(importedFile, parentRoute === '/' ? route : parentRoute + route, superTestCode);
     }

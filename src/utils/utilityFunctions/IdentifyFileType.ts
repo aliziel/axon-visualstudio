@@ -35,6 +35,6 @@
     fileType = 'Router'; 
   }
 
-  return { fileType, portNumber: portNumber || null };
+  return { fileType, portNumber: portNumber || '8080' };
 };
 

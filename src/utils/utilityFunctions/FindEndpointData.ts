@@ -3,7 +3,7 @@ import FuncDefinitionParser from './FuncDefinitionParser';
 
 const AbstractSyntaxTree = require('abstract-syntax-tree');
 
-const expressMethods = {
+const expressMethods:BoolDictionary = {
   get: true,
   delete: true,
   patch: true,
@@ -34,7 +34,7 @@ export default function (fileText:string, currentFilePath:string) {
   const tree = new AbstractSyntaxTree(fileText);
 
   // Initialize the object to return
-  const fileObject:FileObject = {};
+  const fileObject = {} as FileObject;
   fileObject.imports = {};
   fileObject.endpoints = {};
   fileObject.routers = {};
@@ -54,7 +54,7 @@ export default function (fileText:string, currentFilePath:string) {
             const importPath = statement.declarations[0].init.arguments[0].value;
 
             // Add the imported module to the imports object on the fileObject
-            fileObject.imports![importName] = ResolvePath(importPath, currentFilePath);
+            fileObject.imports[importName] = ResolvePath(importPath, currentFilePath);
           }
         }
       }
@@ -67,7 +67,7 @@ export default function (fileText:string, currentFilePath:string) {
         if (statement.expression.type === 'CallExpression' && statement.expression.callee && statement.expression.arguments) {
           // Check if the expression type is "MemberExpression" and the property property "callee" is not ewmpty
           if (statement.expression.callee.type === 'MemberExpression' && statement.expression.callee.property) {
-            const methodName = statement.expression.callee.property.name;
+            const methodName = <string>statement.expression.callee.property.name;
             // Check that the method is an Express based method
             if (expressMethods[methodName]) {
               // Check that the first argument passed into the Express method is a string
@@ -93,10 +93,11 @@ export default function (fileText:string, currentFilePath:string) {
                   endpointArray[endpointArray.length - 1] = FuncDefinitionParser(endpointArray[endpointArray.length - 1]);
 
                   // Add the Endpoint Array to the Endpoints object
-                  if (fileObject.endpoints![route]) {
-                    fileObject.endpoints![route]!.push(endpointArray);
+                  if (fileObject.endpoints[route]) {
+                    const fileEndpoints = fileObject.endpoints[route] as AllEndpoints;
+                    fileEndpoints.push(endpointArray);
                   } else {
-                    fileObject.endpoints![route] = [endpointArray];
+                    fileObject.endpoints[route] = [endpointArray];
                   }
 
                 // When the Express Method defines a Router being mounted as middleware
@@ -111,10 +112,11 @@ export default function (fileText:string, currentFilePath:string) {
                     }
                     
                     // Add the new Router Array to the routers object in the fileObject
-                    if (fileObject.routers![route]) {
-                      fileObject.routers![route]!.push(routerArray);
+                    if (fileObject.routers[route]) {
+                      const fileRoutes = <AllRouters> fileObject.routers[route];
+                      fileRoutes.push(routerArray);
                     } else {
-                      fileObject.routers![route] = [routerArray];
+                      fileObject.routers[route] = [routerArray];
                     }
                 }
               }

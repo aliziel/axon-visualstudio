@@ -8,10 +8,12 @@
 */
 export default function (pathObject:PathObject) {
   // Isolate the root server file
-  const serverFile = pathObject[pathObject.__serverFilePath__];
+  const serverPath = <string> pathObject.__serverFilePath__;
+  const serverFile = <FileObject>pathObject[serverPath];
 
   // Check if the port detected is a number for use in collection variables, otherwise use a default port number
-  const portNumber = `${parseInt(pathObject.__portNumber__)}` === 'NaN' ? 8080 : pathObject.__portNumber__;
+  const portInServerFiles = <string> pathObject.__portNumber__;
+  const portNumber = parseInt(portInServerFiles) === NaN ? 8080 : portInServerFiles;
 
   // Initialize the default collection schema
   // Establish port variable for added flexibility in development
@@ -59,13 +61,13 @@ export default function (pathObject:PathObject) {
 	  const currentRoute = parentRoute === '/' || route === parentRoute ? route : parentRoute + route;
 
       // Iterate through the current endpoint array
-      for (const endpointArray of currentFile.endpoints![route]) {
+      for (const endpointArray of currentFile.endpoints[route] as AllEndpoints) {
         // Store transformed request type for addition to requestItem
-        const reqMethod = endpointArray[0].toUpperCase();
+        const reqMethod = <string> endpointArray[0];
         const requestItem:RequestObject = {
           name: currentRoute,
           request: {
-			      method: reqMethod,
+			      method: reqMethod.toUpperCase(),
 			      header: [],
 			      url: {
               raw: `localhost:{{port}}${currentRoute}`,
@@ -90,10 +92,10 @@ export default function (pathObject:PathObject) {
     // Iterate through routers object to grab endpoints in appropriate file
     for (const route in currentFile.routers) {
       // Locate router file in the pathObject
-      const currentRouteArray = currentFile.routers[route];
-      const routerName = currentRouteArray![0][1];
-      const importedFilePath = `${currentFile.imports![routerName]}.js`;
-      const importedFile = pathObject[importedFilePath];
+      const currentRouteArray = <AllRouters>currentFile.routers[route];
+      const routerName = currentRouteArray[0][1];
+      const importedFilePath = `${currentFile.imports[routerName]}.js`;
+      const importedFile = <FileObject> pathObject[importedFilePath];
 
       // Skip if it does not exist in server directory
       if (importedFile === undefined) {

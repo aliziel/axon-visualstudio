@@ -10,7 +10,7 @@ import IdentifyFileType from './utilityFunctions/IdentifyFileType';
 */
 export default function (fileList:ReadResult[]) {
   // Initialize the returned object
-  const pathObject:PathObject = {};
+  const pathObject = {} as PathObject;
   // Traverse through the fileList input
   for (let i = 0; i < fileList.length; i++) {
     // Name text for easier reference

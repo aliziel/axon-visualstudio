@@ -1,3 +1,14 @@
+interface Dictionary{
+  [index:string]:string
+}
+
+interface BoolDictionary{
+  [index:string]:boolean
+}
+
+interface NamedInterface{
+  name:string
+}
 
 interface UrlProp{
   raw:string,
@@ -12,14 +23,12 @@ interface RequestProp{
 	url: UrlProp,
 }
 
-interface RequestObject{
-  name: string,
+interface RequestObject extends NamedInterface{
   request: RequestProp,
 	response: string[],
 }
 
-interface PostmanInfo{
-  name: string,
+interface PostmanInfo extends NamedInterface{
   schema: string,
 }
 
@@ -43,37 +52,36 @@ interface PostmanCollection{
   item: RequestObject[],
   event: PostmanEvent[],
   variable: PostmanVariable[],
-	  
 }
 
+type AllRouters = string[][];
+
 interface RoutersObject{
-  [key:string]:string[]
+  [parentRoute:string]:AllRouters;
 }
 
 type Endpoint = string | TestParams;
-
-interface EndpointArray{
-  [index:number]:Endpoint[]
-}
+type EndpointArray = Array<Endpoint>;
+type AllEndpoints = Array<EndpointArray>;
 
 interface EndpointObject{
-  [key:string]:EndpointArray
+  [endpointPath:string]:AllEndpoints;
 }
 
 interface ImportObject{
-  [key:string]:string
+  [importLabel:string]:string
 }
 
-interface FileObject{
-  name?: string,
-  imports?: Partial<ImportObject>,
-  endpoints?: Partial<EndpointObject>,
-  routers?:Partial<RoutersObject>,
-  text?:string,
+interface FileObject extends NamedInterface{
+  imports: Partial<ImportObject>,
+  endpoints: Partial<EndpointObject>,
+  routers:Partial<RoutersObject>,
 }
+
+type PathObjectProp = FileObject | string;
 
 interface PathObject{
-  [key:string]: FileObject | string,
+  [filePath:string] : PathObjectProp,
 }
 
 interface TestParams{
@@ -81,13 +89,12 @@ interface TestParams{
   'content-type'?:string,
 }
 
-interface ReadResult{
-  name:string,
+interface ReadResult extends NamedInterface{
   text:string,
 }
 
 interface REMatch{
-  [key:number]:ImportObject
+  [key:number]:Dictionary
 }
 
 interface StringConfiguration {
